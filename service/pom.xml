@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>spark</artifactId>
+        <groupId>info.keyal</groupId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>spark-service</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
+    <name>Spark :: Service</name>
+    <description>Spark :: Service</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <version.maven-bundle-plugin>2.3.7</version.maven-bundle-plugin>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven-resources-plugin-version>2.6</maven-resources-plugin-version>
+        <build-helper-maven-plugin-version>1.9.1</build-helper-maven-plugin-version>
+
+        <!-- the version of the BOM, defining all the dependency versions -->
+        <fabric.version>1.2.0-SNAPSHOT</fabric.version>
+
+        <!-- fabric8 deploy profile configuration -->
+        <fabric8.profile>spark-profile</fabric8.profile>
+        <fabric8.parentProfiles>feature-camel</fabric8.parentProfiles>
+        <fabric8.features>camel-amq</fabric8.features>
+
+        <!-- the version of the JBoss Fuse BOM, defining all the dependency versions -->
+        <jboss.fuse.bom.version>6.2.1.redhat-084</jboss.fuse.bom.version>
+    </properties>
+
+
+</project>
