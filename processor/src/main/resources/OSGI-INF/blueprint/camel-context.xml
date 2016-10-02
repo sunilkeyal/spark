@@ -1,21 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="
-             http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
-             http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:jpa="http://aries.apache.org/xmlns/jpa/v1.1.0"
+           xmlns:tx="http://aries.apache.org/xmlns/transactions/v1.0.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+                    http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint-2.8.0.xsd
+                    http://aries.apache.org/xmlns/transactions/v1.0.0 http://aries.apache.org/schemas/transaction/transactionv10.xsd
+                    http://aries.apache.org/xmlns/jpa/v1.1.0 http://aries.apache.org/schemas/jpa/jpa_110.xsd"
+>
+
+
+    <bean id="tradeBS" class="info.keyal.service.impl.TradeServiceImpl">
+        <!--<property name="mobileRxTokenDAO" ref="mobileRxTokenDAO" />-->
+        <!--<tx:transaction method="*" value="Required" />-->
+    </bean>
+    <service ref="tradeServiceBean" interface="info.keyal.service.TradeService" />
+
+    <bean id="personServiceBean" class="info.keyal.service.impl.PersonServiceImpl" init-method="test"  >
+        <jpa:unit property="entityManagerFactory" unitname="blogjpa" />
+    </bean>
+    <service ref="personServiceBean" interface="info.keyal.service.PersonService"/>
+
 
     <camelContext xmlns="http://camel.apache.org/schema/blueprint" xmlns:order="http://fabric8.com/examples/order/v7"
                   id="spark-processor-context">
 
         <route id="file-to-jms-route">
             <from uri="file:/home/skeyal/spark/input" />
-            <log message="Receiving order ${file:name}" />
+            <log message="SPARK Processor: Receiving order ${file:name}" />
             <to uri="amq:incomingOrders" />
         </route>
 
         <route id="jms-cbr-route">
             <from uri="amq:incomingOrders" />
             <multicast>
+                <to uri="bean:tradeBS"/>
                 <to uri="file:/home/skeyal/spark/output/test1" />
                 <to uri="file:/home/skeyal/spark/output/test2" />
             </multicast>

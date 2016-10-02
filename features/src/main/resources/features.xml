@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="spark-features">
+
+    <feature name="spark-application" resolver="(obr)">
+        <feature version="${project.version}">camel-amq</feature>
+        <bundle>mvn:info.keyal/spark-processor/1.0-SNAPSHOT</bundle>
+
+    </feature>
+</features>
+
