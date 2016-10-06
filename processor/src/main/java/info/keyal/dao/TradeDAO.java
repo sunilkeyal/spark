@@ -1,7 +1,11 @@
 package info.keyal.dao;
 
+import info.keyal.dto.Person;
+
 /**
  * Created by skeyal on 10/2/16.
  */
-public class TradeDAO {
+public interface TradeDAO {
+
+    void save(Person person);
 }

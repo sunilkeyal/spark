@@ -1,0 +1,69 @@
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.0.0">
+
+
+    <!--  Embedded Derby DB -->
+    <bean id="derby-ds" class="org.apache.derby.jdbc.EmbeddedDataSource">
+        <property name="createDatabase" value="create"/>
+        <property name="databaseName" value="test"/>
+    </bean>
+
+    <service ref="derby-ds" interface="javax.sql.DataSource" ranking="5">
+        <service-properties>
+            <entry key="datasource.name" value="DerbyDS"/>
+        </service-properties>
+    </service>
+
+    <!--<bean id="postgresdatasource"-->
+          <!--class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">-->
+        <!--<property name="driverClassName" value="org.postgresql.Driver" />-->
+        <!--<property name="url" value="jdbc:postgresql://localhost/spark" />-->
+        <!--<property name="username" value="skeyal" />-->
+        <!--<property name="password" value="skeyal" />-->
+        <!--&lt;!&ndash;<property name="maxActive" value="${messaging.db.maxActive}" />&ndash;&gt;-->
+        <!--&lt;!&ndash;<property name="maxIdle" value="${messaging.db.maxIdle}" />&ndash;&gt;-->
+        <!--&lt;!&ndash;<property name="poolPreparedStatements" value="${messaging.db.poolPreparedStatements}" />&ndash;&gt;-->
+        <!--&lt;!&ndash;<property name="maxOpenPreparedStatements" value="${messaging.db.maxOpenPreparedStatement}" />&ndash;&gt;-->
+        <!--<property name="testOnBorrow" value="true" />-->
+    <!--</bean>-->
+
+    <!--<service ref="postgresdatasource" interface="javax.sql.DataSource">-->
+        <!--<service-properties>-->
+            <!--<entry key="osgi.jndi.service.name" value="jdbc/messagingDatabase"/>-->
+        <!--</service-properties>-->
+    <!--</service>-->
+
+    <!-- Other datasource definitions
+    <bean id="mysql-ds" class="com.mysql.jdbc.jdbc2.optional.MysqlDataSource">
+      <property name="databaseName" value="test"/>
+      <property name="url" value="jdbc:mysql://localhost/test?relaxAutoCommit=true" />
+      <property name="user" value="root"/>
+      <property name="password" value=""/>
+    </bean>
+    -->
+    <!--
+    <bean id="tomcat-jdbc" class="org.apache.tomcat.jdbc.pool.XADataSource">
+      <property name="dataSource" ref="mysql-ds"/>
+      <property name="initialSize" value="1"/>
+      <property name="maxActive" value="5"/>
+      <property name="jmxEnabled" value="true"/>
+    </bean>
+    -->
+    <!--
+      <bean id="dbcp" destroy-method="close" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost/test?relaxAutoCommit=true"/>
+        <property name="username" value="root"/>
+        <property name="password" value=""/>
+      </bean>
+    -->
+    <!--
+      <service interface="javax.sql.DataSource" ref="dbcp">
+        <service-properties>
+          <entry key="osgi.jndi.service.name" value="jdbc/mysqld"/>
+          <entry key="datasource.name" value="MySQL"/>
+        </service-properties>
+      </service>
+    -->
+
+</blueprint>

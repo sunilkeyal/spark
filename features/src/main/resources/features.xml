@@ -1,10 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <features name="spark-features">
 
-    <feature name="spark-application" resolver="(obr)">
-        <feature version="${project.version}">camel-amq</feature>
-        <bundle>mvn:info.keyal/spark-processor/1.0-SNAPSHOT</bundle>
+    <feature version="1.0.0-SNAPSHOT" name="spark" >
+        <!--<feature version="${project.version}">camel-amq</feature>-->
+
+
+        <bundle>mvn:org.apache.derby/derby/10.10.1.1</bundle>
+        <bundle>wrap:mvn:commons-dbcp/commons-dbcp/1.4</bundle>
+
+        <!--  Additional Camel features -->
+        <feature>camel-sql</feature>
+        <bundle>mvn:org.apache.camel/camel-jms/2.15.1.redhat-621084</bundle>
+        <bundle>mvn:org.apache.camel/camel-jdbc/2.15.1.redhat-621084</bundle>
+
+        <bundle>mvn:info.keyal/datasource/1.0.0-SNAPSHOT</bundle>
+        <bundle>mvn:info.keyal/spark-processor/1.0.0-SNAPSHOT</bundle>
 
     </feature>
+    <feature version="1.0.0-SNAPSHOT" name="spark-feature" resolver="(obr)">
+
+        <!-- Prerequisite bundles -->
+        <!-- aries.transaction.jdbc should be installed out of the box in 6.1 but is not in release candidate.
+                 https://issues.jboss.org/browse/ENTESB-1029
+            -->
+        <!--<bundle>mvn:org.apache.aries.transaction/org.apache.aries.transaction.jdbc/1.0.1.redhat-610379</bundle>-->
+        <!--<bundle>mvn:org.apache.geronimo.specs/geronimo-j2ee-connector_1.5_spec/2.0.0</bundle>-->
+
+        <!-- JDBC driver classes -->
+        <!--<bundle>wrap:mvn:mysql/mysql-connector-java/5.1.27</bundle>-->
+
+        <!--  additional Camel features -->
+        <feature>camel-sql</feature>
+        <bundle>mvn:org.apache.camel/camel-jms/${camel.version}</bundle>
+        <bundle>mvn:org.apache.camel/camel-jdbc/${camel.version}</bundle>
+
+        <!-- finally the demo bundles -->
+        <!--<bundle>mvn:${project.groupId}/datasource/${project.version}</bundle>-->
+        <!--<bundle>mvn:${project.groupId}/routing/${project.version}</bundle>-->
+    </feature>
+
 </features>
 

@@ -1,44 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:jaxws="http://cxf.apache.org/blueprint/jaxws"
            xmlns:jpa="http://aries.apache.org/xmlns/jpa/v1.1.0"
            xmlns:tx="http://aries.apache.org/xmlns/transactions/v1.0.0"
+           xmlns:cxf="http://cxf.apache.org/blueprint/core"
+           xmlns:amq="http://activemq.apache.org/schema/core"
            xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
                     http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint-2.8.0.xsd
+                    http://cxf.apache.org/blueprint/core http://cxf.apache.org/schemas/blueprint/core.xsd
+                    http://cxf.apache.org/blueprint/jaxws http://cxf.apache.org/schemas/blueprint/jaxws.xsd
                     http://aries.apache.org/xmlns/transactions/v1.0.0 http://aries.apache.org/schemas/transaction/transactionv10.xsd
-                    http://aries.apache.org/xmlns/jpa/v1.1.0 http://aries.apache.org/schemas/jpa/jpa_110.xsd"
+                    http://aries.apache.org/xmlns/jpa/v1.1.0 http://aries.apache.org/schemas/jpa/jpa_110.xsd
+                    http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd"
 >
 
 
+
+    <reference id="mysql-db" interface="javax.sql.DataSource" availability="mandatory"
+               filter="(datasource.name=DerbyDS)"/>
+
+
+    <bean id="tradeDAO" class="info.keyal.dao.impl.TradeDAOImpl"/>
+    <!--<property name="mobileRxTokenDAO" value="tradeDAO" />-->
+    <!--</bean>-->
+    <service ref="tradeDAO" interface="info.keyal.dao.TradeDAO"/>
+
     <bean id="tradeBS" class="info.keyal.service.impl.TradeServiceImpl">
-        <!--<property name="mobileRxTokenDAO" ref="mobileRxTokenDAO" />-->
+        <property name="tradeDAO" ref="tradeDAO"/>
         <!--<tx:transaction method="*" value="Required" />-->
     </bean>
-    <service ref="tradeServiceBean" interface="info.keyal.service.TradeService" />
+    <!--<service ref="tradeServiceBean" interface="info.keyal.service.TradeService" />-->
 
-    <bean id="personServiceBean" class="info.keyal.service.impl.PersonServiceImpl" init-method="test"  >
-        <jpa:unit property="entityManagerFactory" unitname="blogjpa" />
+    <!--<bean id="personServiceBean" class="info.keyal.service.impl.PersonServiceImpl" init-method="test"  >-->
+    <!--<jpa:unit property="entityManagerFactory" unitname="blogjpa" />-->
+    <!--</bean>-->
+    <!--<service ref="personServiceBean" interface="info.keyal.service.PersonService"/>-->
+
+    <!-- This creates an embedded ActiveMQ Broker -->
+    <!--<broker xmlns="http://activemq.apache.org/schema/core" useJmx="true" persistent="false">-->
+    <!--<transportConnectors>-->
+    <!--<transportConnector uri="tcp://localhost:61616"/>-->
+    <!--</transportConnectors>-->
+    <!--</broker>-->
+
+    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+        <property name="brokerURL" value="tcp://localhost:61616"/>
+        <property name="userName" value="admin"/>
+        <property name="password" value="admin"/>
     </bean>
-    <service ref="personServiceBean" interface="info.keyal.service.PersonService"/>
 
 
     <camelContext xmlns="http://camel.apache.org/schema/blueprint" xmlns:order="http://fabric8.com/examples/order/v7"
                   id="spark-processor-context">
 
-        <route id="file-to-jms-route">
-            <from uri="file:/home/skeyal/spark/input" />
-            <log message="SPARK Processor: Receiving order ${file:name}" />
-            <to uri="amq:incomingOrders" />
+
+        <route id="file-to-amq">
+            <from uri="file:/home/skeyal/spark/input"/>
+            <log message="SPARK Processor: Receiving order ${file:name}"/>
+            <!--<to uri="bean:tradeBS"/>-->
+            <to uri="activemq:incomingOrders"/>
         </route>
 
-        <route id="jms-cbr-route">
-            <from uri="amq:incomingOrders" />
+        <route id="amq-to-file">
+            <from uri="activemq:incomingOrders"/>
             <multicast>
-                <to uri="bean:tradeBS"/>
-                <to uri="file:/home/skeyal/spark/output/test1" />
-                <to uri="file:/home/skeyal/spark/output/test2" />
+                <to uri="bean:tradeBS?method=send"/>
+                <to uri="file:/home/skeyal/spark/output/test1"/>
+                <to uri="file:/home/skeyal/spark/output/test2"/>
             </multicast>
-            <log message="Done processing ${file:name}" />
+            <log message="Done processing ${file:name}"/>
         </route>
+
+
+        <!-- Sample route using the camel-sql component -->
+        <!--<route id="jms-sql-jms">-->
+        <!--<from uri="amq:SQL_IN" />-->
+        <!--<log message="REDELIVERED: ${header.JMSRedelivered}" />-->
+        <!--&lt;!&ndash;  Camel 2.10 does not support named parameters yet &ndash;&gt;-->
+        <!--<convertBodyTo type="java.lang.Object[]" />-->
+        <!--<to uri ="sql:INSERT INTO USERS values (#, #, #, #)" />-->
+        <!--<setBody>-->
+        <!--<constant>Data correctly written to database.</constant>-->
+        <!--</setBody>-->
+        <!--<to uri="log:AfterJDBC?level=INFO&amp;showAll=true" />-->
+        <!--<to uri="amq:queue:SQL_OUT" />-->
+        <!--</route>-->
+
+
+        <!--  Sample route using camel-jdbc component -->
+        <!--<route id="jms-jdbc-jms">-->
+        <!--<from uri="amq:JDBC_IN" />-->
+        <!--<log message="REDELIVERED: ${header.JMSRedelivered}" />-->
+        <!--&lt;!&ndash; when using XA transactions, need to set resetAutoCommit=false-->
+        <!--otherwise this error may be thrown:-->
+        <!--"java.sql.SQLException: Can't set autocommit to 'true' on an XAConnection"-->
+        <!--&ndash;&gt;-->
+        <!--<to uri="jdbc:mysql-db?resetAutoCommit=false" />-->
+        <!--<setBody>-->
+        <!--<constant>Data correctly written to database.</constant>-->
+        <!--</setBody>-->
+        <!--<to uri="log:AfterJDBC?level=INFO&amp;showAll=true" />-->
+        <!--<to uri="amq:queue:JDBC_OUT" />-->
+        <!--</route>-->
+
+
+        <!--  A bit of cheating. A route that triggers only once to create the
+              DB table in embedded Derby -->
+        <route id="create-db-tables" autoStartup="false">
+            <from uri="timer:CreateDB?delay=2000&amp;repeatCount=1"/>
+            <log message="Creating DB Table using"/>
+            <setBody>
+                <constant>
+                    <![CDATA[CREATE TABLE Users (firstname VARCHAR(50) NOT NULL, lastname VARCHAR(50), login VARCHAR(12), password VARCHAR(20), PRIMARY KEY (login))]]></constant>
+            </setBody>
+            <log message="${body}"/>
+            <to uri="jdbc:mysql-db?resetAutoCommit=false"/>
+        </route>
+
     </camelContext>
 </blueprint>
